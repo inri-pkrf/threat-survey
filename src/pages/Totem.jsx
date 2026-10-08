@@ -22,13 +22,15 @@ export default function Totem() {
   useEffect(() => {
     let active = true;
     const load = async () => {
-      const rs = await base44.entities.RoundState.list();
-      const vc = await base44.entities.VoteCount.filter({}, { limit: 20 });
+      const rsRaw = await base44.entities.RoundState.list();
+      const vcRaw = await base44.entities.VoteCount.filter({}, { limit: 20 });
       if (!active) return;
-      if (rs.items && rs.items.length) setRound(rs.items[0]);
+      const rs = Array.isArray(rsRaw) ? rsRaw : rsRaw.items || [];
+      const vc = Array.isArray(vcRaw) ? vcRaw : vcRaw.items || [];
+      if (rs.length) setRound(rs[0]);
       setCounts((prev) => {
         const next = { ...prev };
-        vc.items.forEach((v) => { next[v.threat_id] = v.count || 0; });
+        vc.forEach((v) => { next[v.threat_id] = v.count || 0; });
         return next;
       });
     };

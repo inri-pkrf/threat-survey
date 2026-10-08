@@ -10,7 +10,7 @@ export default function Numpad({ value, onChange, onSubmit }) {
     "h-24 rounded-2xl border border-white/15 bg-white/5 font-heading text-4xl font-bold text-white transition-colors hover:bg-white/15 active:bg-white/25";
 
   return (
-    <div className="mx-auto mt-8 grid max-w-[540px] grid-cols-3 gap-4">
+    <div dir="ltr" className="mx-auto mt-8 grid max-w-[540px] grid-cols-3 gap-4">
       {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((d) => (
         <button key={d} type="button" onClick={() => press(d)} className={keyClass}>
           {d}
