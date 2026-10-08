@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { addDays, format, setHours, setMinutes } from "date-fns";
 import { he } from "date-fns/locale";
+import { ChevronDown } from "lucide-react";
 
 const ITEM_H = 64;
 const WHEEL_H = 320;
@@ -57,13 +58,16 @@ export default function DateTimePicker({ onConfirm }) {
   const days = Array.from({ length: 30 }, (_, i) => addDays(base, i));
   const hours = Array.from({ length: 24 }, (_, i) => i);
   const minutes = Array.from({ length: 60 }, (_, i) => i);
+  const stripRef = useRef(null);
   const [dayIdx, setDayIdx] = useState(0);
   const [hour, setHour] = useState(18);
   const [minute, setMinute] = useState(0);
+  const chosen = setHours(setMinutes(days[dayIdx], minute), hour);
+  const past = chosen.getTime() <= Date.now();
 
   return (
     <div className="mt-6">
-      <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
+      <div ref={stripRef} className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
         {days.map((d, i) => {
           const selected = i === dayIdx;
           return (
@@ -83,15 +87,34 @@ export default function DateTimePicker({ onConfirm }) {
           );
         })}
       </div>
+      <button
+        type="button"
+        aria-label="גלילה לתאריכים הבאים"
+        onClick={() => {
+          const el = stripRef.current;
+          if (!el) return;
+          const atEnd = Math.abs(el.scrollLeft) + el.clientWidth >= el.scrollWidth - 10;
+          el.scrollTo({ left: atEnd ? 0 : el.scrollLeft - 300, behavior: "smooth" });
+        }}
+        className="mx-auto mt-2 flex h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-white/5 text-slate-300 transition-colors hover:bg-white/10"
+      >
+        <ChevronDown className="h-6 w-6" />
+      </button>
       <div className="mt-6 flex items-center justify-center gap-5">
         <Wheel values={hours} value={hour} onChange={setHour} width={150} />
         <span className="font-heading text-5xl font-bold text-slate-300">:</span>
         <Wheel values={minutes} value={minute} onChange={setMinute} width={150} />
       </div>
+      {past && (
+        <p className="mt-3 text-center font-heading text-xl text-red-400">המועד שנבחר כבר עבר, יש לבחור מועד עתידי</p>
+      )}
       <button
         type="button"
-        onClick={() => onConfirm(setHours(setMinutes(days[dayIdx], minute), hour))}
-        className="mt-6 w-full rounded-2xl bg-amber-400 py-5 font-heading text-3xl font-extrabold text-[#0c1526] transition-colors hover:bg-amber-300"
+        disabled={past}
+        onClick={() => onConfirm(chosen)}
+        className={`mt-6 w-full rounded-2xl py-5 font-heading text-3xl font-extrabold transition-colors ${
+          past ? "cursor-not-allowed bg-white/10 text-slate-500" : "bg-amber-400 text-[#0c1526] hover:bg-amber-300"
+        }`}
       >
         אישור: איפוס הקולות והתחלת סבב חדש
       </button>
