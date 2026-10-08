@@ -101,13 +101,16 @@ export default function Totem() {
       <div
         ref={canvasRef}
         dir="rtl"
-        className="relative h-full w-full select-none overflow-hidden bg-[#060d1a] text-white"
+        className={`relative h-full w-full select-none overflow-hidden ${
+          isResults ? "bg-[#f7f2e9] text-[#0f1e33]" : "bg-[#060d1a] text-white"
+        }`}
       >
         <div
           className="pointer-events-none absolute inset-0"
           style={{
-            background:
-              "radial-gradient(ellipse 85% 45% at 50% -5%, rgba(56,110,190,0.30), transparent 60%), radial-gradient(ellipse 60% 40% at 50% 105%, rgba(20,60,110,0.28), transparent 65%), radial-gradient(ellipse 40% 30% at 85% 40%, rgba(120,80,20,0.10), transparent 70%)",
+            background: isResults
+              ? "radial-gradient(ellipse 85% 45% at 50% -5%, rgba(214,178,110,0.28), transparent 60%), radial-gradient(ellipse 60% 40% at 50% 105%, rgba(150,130,95,0.20), transparent 65%)"
+              : "radial-gradient(ellipse 85% 45% at 50% -5%, rgba(56,110,190,0.30), transparent 60%), radial-gradient(ellipse 60% 40% at 50% 105%, rgba(20,60,110,0.28), transparent 65%), radial-gradient(ellipse 40% 30% at 85% 40%, rgba(120,80,20,0.10), transparent 70%)",
           }}
         />
 
@@ -141,7 +144,11 @@ export default function Totem() {
         <button
           type="button"
           onClick={() => setAdminOpen(true)}
-          className="absolute bottom-5 left-6 z-30 rounded-full border border-white/15 bg-white/5 px-6 py-3 font-heading text-xl text-white/60 transition-colors hover:bg-white/10 hover:text-white"
+          className={`absolute bottom-5 left-6 z-30 rounded-full border px-6 py-3 font-heading text-xl transition-colors ${
+            isResults
+              ? "border-[#0f1e33]/15 bg-[#0f1e33]/5 text-[#0f1e33]/60 hover:bg-[#0f1e33]/10 hover:text-[#0f1e33]"
+              : "border-white/15 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
+          }`}
         >
           איפוס / סקר נוסף
         </button>
