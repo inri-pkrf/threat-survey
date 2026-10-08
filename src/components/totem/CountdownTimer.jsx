@@ -21,9 +21,9 @@ export default function CountdownTimer({ targetMs }) {
   return (
     <div className="flex gap-2">
       {cells.map((c) => (
-        <div key={c.label} className="w-[92px] rounded-xl border border-white/10 bg-white/5 px-2 py-2 text-center shadow-[0_4px_20px_rgba(0,0,0,0.35)]">
-          <div className="font-heading text-4xl font-extrabold leading-none text-amber-300 tabular-nums">{pad(c.v)}</div>
-          <div className="mt-1 font-heading text-base text-slate-400">{c.label}</div>
+        <div key={c.label} className="w-[92px] rounded-xl border border-border bg-card px-2 py-2 text-center shadow-sm">
+          <div className="font-heading text-4xl font-extrabold leading-none text-foreground tabular-nums">{pad(c.v)}</div>
+          <div className="mt-1 font-heading text-base text-muted-foreground">{c.label}</div>
         </div>
       ))}
     </div>

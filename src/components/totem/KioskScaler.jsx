@@ -16,7 +16,7 @@ export default function KioskScaler({ children }) {
   }, []);
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center overflow-hidden bg-black">
+    <div className="fixed inset-0 flex items-center justify-center overflow-hidden bg-background">
       <div
         style={{ width: 1080, height: 1920, transform: `scale(${scale})`, transformOrigin: "center center" }}
         className="shrink-0"

@@ -86,6 +86,7 @@ export default function Totem() {
   };
 
   const handleReset = async (revealDate) => {
+    if (revealDate.getTime() <= Date.now()) throw new Error("יש לבחור מועד חשיפה עתידי");
     await base44.entities.VoteCount.updateMany({ count: { $ne: 0 } }, { $set: { count: 0 } });
     const patch = {
       reveal_at: revealDate.toISOString(),
@@ -101,24 +102,14 @@ export default function Totem() {
       <div
         ref={canvasRef}
         dir="rtl"
-        className={`relative h-full w-full select-none overflow-hidden ${
-          isResults ? "bg-[#f7f2e9] text-[#0f1e33]" : "bg-[#060d1a] text-white"
-        }`}
+        className="relative h-full w-full select-none overflow-hidden bg-background text-foreground"
       >
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background: isResults
-              ? "radial-gradient(ellipse 85% 45% at 50% -5%, rgba(214,178,110,0.28), transparent 60%), radial-gradient(ellipse 60% 40% at 50% 105%, rgba(150,130,95,0.20), transparent 65%)"
-              : "radial-gradient(ellipse 85% 45% at 50% -5%, rgba(56,110,190,0.30), transparent 60%), radial-gradient(ellipse 60% 40% at 50% 105%, rgba(20,60,110,0.28), transparent 65%), radial-gradient(ellipse 40% 30% at 85% 40%, rgba(120,80,20,0.10), transparent 70%)",
-          }}
-        />
 
         <div className="relative z-10 flex h-full w-full flex-col px-10 pb-16 pt-8">
           <TotemHeader isResults={isResults} targetMs={round ? new Date(round.reveal_at).getTime() : now} totalVotes={totalVotes} counterRef={counterRef} />
           {!round ? (
             <div className="flex flex-1 items-center justify-center">
-              <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-700 border-t-amber-400" />
+              <div className="h-12 w-12 animate-spin rounded-full border-4 border-border border-t-ring" />
             </div>
           ) : isResults ? (
             <ResultsBoard counts={counts} totalVotes={totalVotes} />
@@ -131,7 +122,7 @@ export default function Totem() {
         {flies.map((f) => (
           <motion.div
             key={f.id}
-            className="pointer-events-none absolute z-40 font-heading text-[64px] font-extrabold text-amber-300 drop-shadow-[0_0_16px_rgba(251,191,36,0.6)]"
+            className="pointer-events-none absolute z-40 font-heading text-[64px] font-extrabold text-foreground"
             style={{ left: f.start.x - 45, top: f.start.y - 45 }}
             initial={{ opacity: 1, scale: 1 }}
             animate={{ left: f.end.x - 45, top: f.end.y - 45, opacity: [1, 1, 0], scale: [1, 1.25, 0.55] }}
@@ -144,11 +135,7 @@ export default function Totem() {
         <button
           type="button"
           onClick={() => setAdminOpen(true)}
-          className={`absolute bottom-5 left-6 z-30 rounded-full border px-6 py-3 font-heading text-xl transition-colors ${
-            isResults
-              ? "border-[#0f1e33]/15 bg-[#0f1e33]/5 text-[#0f1e33]/60 hover:bg-[#0f1e33]/10 hover:text-[#0f1e33]"
-              : "border-white/15 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
-          }`}
+          className="absolute bottom-5 left-6 z-30 rounded-full border border-border bg-card px-6 py-3 font-heading text-xl text-foreground transition-colors hover:bg-secondary"
         >
           איפוס / סקר נוסף
         </button>
