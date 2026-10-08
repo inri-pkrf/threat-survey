@@ -57,7 +57,7 @@ export default function AdminModal({ open, onClose, round, onReset }) {
                   <h2 className="font-heading text-4xl font-bold text-white">הזנת קוד מנהל</h2>
                 </div>
                 <p className="mt-2 font-heading text-xl text-slate-400">הקלידו את הקוד הסודי לצורך איפוס המערכת</p>
-                <div className="mt-6 flex justify-center gap-3">
+                <div dir="ltr" className="mt-6 flex justify-center gap-3">
                   {[0, 1, 2, 3].map((i) => (
                     <div
                       key={i}
