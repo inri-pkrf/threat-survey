@@ -54,7 +54,7 @@ export default function AdminModal({ open, onClose, round, onReset }) {
               <React.Fragment>
                 <div className="flex items-center gap-3">
                   <Lock className="h-9 w-9 text-foreground" />
-                  <h2 className="font-heading text-4xl font-bold text-foreground">הזנת קוד מנהל</h2>
+                  <h2 className="font-heading text-4xl font-bold text-foreground">הזנת קוד מנהלת</h2>
                 </div>
                 <p className="mt-2 font-heading text-xl text-muted-foreground">הקלידו את הקוד הסודי לצורך איפוס המערכת</p>
                 <div dir="ltr" className="mt-6 flex justify-center gap-3">
