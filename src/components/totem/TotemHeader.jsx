@@ -31,7 +31,7 @@ export default function TotemHeader({ isResults, targetMs, totalVotes, counterRe
             מהו האיום המרכזי על הרשות שלך?
           </h1>
           <p className="mt-1 text-center font-heading text-[30px] leading-snug text-muted-foreground">
-            הכרת האיומים המרכזיים על רשויות במצבי חירום היא הבסיס להיערכות נכונה ולשמירה על רציפות התפקוד.
+            הניסיון שלכם חשוב לנו. לחצו על התרחיש שהכי מאיים על הארגון שלכם והשפיעו על מפת האיומים של המשתתפים.
           </p>
           <p className="mt-1 text-center font-heading text-[34px] font-semibold text-foreground">אלה תוצאות הסקר:</p>
         </>
@@ -44,8 +44,7 @@ export default function TotemHeader({ isResults, targetMs, totalVotes, counterRe
             יש לבחור באפשרות הנכונה ביותר מבין האפשרויות המוצגות מטה
           </p>
           <div className="mt-1 text-center font-heading text-[24px] leading-snug text-muted-foreground">
-            <p>הכרת האיומים המרכזיים על רשויות במצבי חירום היא הבסיס להיערכות נכונה ולשמירה על רציפות התפקוד.</p>
-            <p>הצבעתכם מסייעת למפות את תחושת הסיכון הציבורית ולשפר את מוכנות הרשות לאתגרים הצפויים.</p>
+            <p>הניסיון שלכם חשוב לנו. לחצו על התרחיש שהכי מאיים על הארגון שלכם והשפיעו על מפת האיומים של המשתתפים.</p>
           </div>
         </>
       )}
