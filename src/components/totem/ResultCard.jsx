@@ -10,10 +10,14 @@ export default function ResultCard({ threat, index }) {
       transition={{ delay: index * 0.04, duration: 0.4 }}
       className="flex h-[280px] shrink-0 overflow-hidden rounded-3xl border-2 border-ring/40 bg-card shadow-lg"
     >
-      <Image src={threat.image} alt={threat.name} className="h-full w-[340px] shrink-0" fittingType="fill" />
+      <div className="relative h-full w-[340px] shrink-0">
+        <Image src={threat.image} alt={threat.name} className="h-full w-full" fittingType="fill" />
+        <span className="absolute top-3 right-3 flex h-14 w-14 items-center justify-center rounded-full bg-foreground/80 font-heading text-4xl font-extrabold text-background shadow-md">
+          1
+        </span>
+      </div>
       <div className="flex min-w-0 flex-1 flex-col items-center justify-center gap-2 px-6 text-center text-foreground">
         <div className="flex items-center gap-3">
-          <span className="w-12 shrink-0 text-center font-heading text-4xl font-extrabold text-muted-foreground tabular-nums">1</span>
           <span className="font-heading text-[56px] font-extrabold leading-tight">{threat.name}</span>
         </div>
         <span dir="ltr" className="whitespace-nowrap font-heading text-[104px] font-extrabold leading-none tabular-nums">
