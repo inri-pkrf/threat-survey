@@ -10,7 +10,9 @@ export default function ResultRow({ threat, rank, index }) {
       transition={{ delay: index * 0.04, duration: 0.35 }}
       className="flex min-h-0 flex-1 items-center gap-4 rounded-2xl border border-border bg-card px-4 shadow-sm"
     >
-      <span className="w-12 shrink-0 text-center font-heading text-3xl font-extrabold text-muted-foreground tabular-nums">{rank}</span>
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-foreground/80 font-heading text-2xl font-extrabold text-background shadow-sm">
+        {rank}
+      </span>
       <Image src={threat.image} alt={threat.name} className="h-14 w-24 shrink-0 rounded-xl" fittingType="fill" />
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-3">
