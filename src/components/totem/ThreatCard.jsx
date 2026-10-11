@@ -14,7 +14,12 @@ export default function ThreatCard({ threat, highlighted, onVote }) {
           : "border-border shadow-md"
       }`}
     >
-      <Image src={threat.image} alt={threat.name} className="absolute inset-0 h-full w-full" fittingType="fill" />
+      <Image
+        src={threat.image}
+        alt={threat.name}
+        className="absolute inset-0 h-full w-full"
+        fittingType={threat.id === "flood" || threat.id === "infiltration" ? "fit" : "fill"}
+      />
       {highlighted && <div className="absolute inset-0 bg-primary/10" />}
       <div className="absolute inset-x-2 top-2 flex justify-center">
         <span className="rounded-lg bg-card/85 px-3 py-0.5 text-center font-heading text-[26px] font-bold leading-snug text-foreground shadow-sm">

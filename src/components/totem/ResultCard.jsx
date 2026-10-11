@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Crown } from "lucide-react";
+import { ShieldAlert } from "lucide-react";
 import { Image } from "@/components/ui/image";
 
 export default function ResultCard({ threat, index }) {
@@ -14,7 +14,7 @@ export default function ResultCard({ threat, index }) {
       <Image src={threat.image} alt={threat.name} className="h-full w-[340px] shrink-0" fittingType="fill" />
       <div className="flex min-w-0 flex-1 flex-col items-center justify-center gap-2 px-6 text-center text-foreground">
         <div className="flex items-center gap-3">
-          <Crown className="h-9 w-9 text-chart-4" />
+          <ShieldAlert className="h-9 w-9 text-muted-foreground" />
           <span className="font-heading text-[56px] font-extrabold leading-tight">{threat.name}</span>
         </div>
         <span dir="ltr" className="whitespace-nowrap font-heading text-[104px] font-extrabold leading-none tabular-nums">

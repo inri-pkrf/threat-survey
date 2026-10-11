@@ -25,16 +25,27 @@ export default function TotemHeader({ isResults, targetMs, totalVotes, counterRe
           )}
         </div>
       </div>
-      <h1 className="mt-1 text-center font-display text-[104px] font-bold leading-none text-foreground">
-        מהו האיום המרכזי על הרשות שלך?
-      </h1>
-      <p className="mt-2 text-center font-heading text-[34px] font-semibold text-foreground">
-        יש לבחור באפשרות הנכונה ביותר מבין האפשרויות המוצגות מטה
-      </p>
-      <div className="mt-1 text-center font-heading text-[24px] leading-snug text-muted-foreground">
-        <p>הכרת האיומים המרכזיים על רשויות במצבי חירום היא הבסיס להיערכות נכונה ולשמירה על רציפות התפקוד הממלכתי.</p>
-        <p>הצבעתכם מסייעת למפות את תחושת הסיכון הציבורית ולשפר את מוכנות הרשות לאתגרים הצפויים.</p>
-      </div>
+      {isResults ? (
+        <>
+          <p className="mt-1 text-center font-heading text-[30px] leading-snug text-muted-foreground">
+            הכרת האיומים המרכזיים על רשויות במצבי חירום היא הבסיס להיערכות נכונה ולשמירה על רציפות התפקוד הממלכתי.
+          </p>
+          <p className="mt-1 text-center font-heading text-[34px] font-semibold text-foreground">אלה תוצאות הסקר:</p>
+        </>
+      ) : (
+        <>
+          <h1 className="mt-1 text-center font-display text-[104px] font-bold leading-none text-foreground">
+            מהו האיום המרכזי על הרשות שלך?
+          </h1>
+          <p className="mt-2 text-center font-heading text-[34px] font-semibold text-foreground">
+            יש לבחור באפשרות הנכונה ביותר מבין האפשרויות המוצגות מטה
+          </p>
+          <div className="mt-1 text-center font-heading text-[24px] leading-snug text-muted-foreground">
+            <p>הכרת האיומים המרכזיים על רשויות במצבי חירום היא הבסיס להיערכות נכונה ולשמירה על רציפות התפקוד הממלכתי.</p>
+            <p>הצבעתכם מסייעת למפות את תחושת הסיכון הציבורית ולשפר את מוכנות הרשות לאתגרים הצפויים.</p>
+          </div>
+        </>
+      )}
     </div>
   );
 }
