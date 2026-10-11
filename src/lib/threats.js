@@ -10,7 +10,7 @@ export const THREATS = [
   { id: "infiltration", name: "חדירת מחבלים", image: "https://media.base44.com/images/public/user_6885e537f90714e91be36212/a56c578e4_TerroristInfiltration.jpeg" },
   { id: "cyber", name: "מתקפת סייבר", image: "https://media.base44.com/images/public/6ac770db8d8a93e3b47194b5/c9c239bbe_WhatsAppImage2026-10-08at110146.jpeg" },
   { id: "tsunami", name: "צונאמי", image: "https://media.base44.com/images/public/6ac770db8d8a93e3b47194b5/c1b52f2d2_tsunami.jpeg" },
-  { id: "leak", name: "הדלפת מידע", image: "https://media.base44.com/images/public/6ac770db8d8a93e3b47194b5/e485da48c_generated_image.png" },
+  { id: "leak", name: "פייק ניוז", image: "https://media.base44.com/images/public/6ac770db8d8a93e3b47194b5/e485da48c_generated_image.png" },
 ];
 
 export const LOGO_URL = "https://media.base44.com/images/public/user_6885e537f90714e91be36212/7ed1d5733_INRI-LOGO1.svg";
