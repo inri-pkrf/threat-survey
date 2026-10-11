@@ -12,7 +12,7 @@ export default function TotemHeader({ isResults, targetMs, totalVotes, counterRe
         <div className="flex flex-col items-start gap-2">
           {isResults ? (
             <div className="rounded-xl border border-border bg-card px-5 py-2 font-heading text-xl font-bold text-foreground shadow-sm">
-              התוצאות חשופות עד לאיפוס המנהל
+              התוצאות חשופות עד לאיפוס המנהלת
             </div>
           ) : (
             <>
