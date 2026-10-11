@@ -1,5 +1,5 @@
 export const THREATS = [
-  { id: "rockets", name:`כטבמ"ים`, image: "https://media.base44.com/images/public/user_6885e537f90714e91be36212/b4fa1f9fe_rockets2.jpeg" },
+  { id: "rockets", name:`מתקפת כטבמ"ים`, image: "https://media.base44.com/images/public/user_6885e537f90714e91be36212/b4fa1f9fe_rockets2.jpeg" },
   { id: "missiles", name: "נפילת טיל", image: "https://media.base44.com/images/public/user_6885e537f90714e91be36212/38adc55a2_rockets-destruction-background.jpg" },
   { id: "earthquake", name: "רעידת אדמה", image: "https://media.base44.com/images/public/user_6885e537f90714e91be36212/5ee95edaa_earthquake.jpeg" },
   { id: "fire", name: "שריפה", image: "https://media.base44.com/images/public/user_6885e537f90714e91be36212/e78859857_fire.jpeg" },
