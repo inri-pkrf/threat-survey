@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
+import { KeyRound, Maximize2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import KioskScaler from "@/components/totem/KioskScaler";
 import TotemHeader from "@/components/totem/TotemHeader";
@@ -85,6 +86,11 @@ export default function Totem() {
     }
   };
 
+  const toggleFullscreen = () => {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen();
+  };
+
   const handleReset = async (revealDate) => {
     if (revealDate.getTime() <= Date.now()) throw new Error("יש לבחור מועד חשיפה עתידי");
     await base44.entities.VoteCount.updateMany({ count: { $ne: 0 } }, { $set: { count: 0 } });
@@ -135,9 +141,19 @@ export default function Totem() {
         <button
           type="button"
           onClick={() => setAdminOpen(true)}
-          className="absolute bottom-5 left-6 z-30 rounded-full border border-border bg-card px-6 py-3 font-heading text-xl text-foreground transition-colors hover:bg-secondary"
+          aria-label="פתיחת ניהול המערכת"
+          className="absolute bottom-5 left-6 z-30 flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card/80 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
         >
-          איפוס / סקר נוסף
+          <KeyRound className="h-5 w-5" />
+        </button>
+
+        <button
+          type="button"
+          onClick={toggleFullscreen}
+          aria-label="מסך מלא"
+          className="absolute bottom-5 right-6 z-30 flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card/80 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+        >
+          <Maximize2 className="h-5 w-5" />
         </button>
 
         <AdminModal open={adminOpen} onClose={() => setAdminOpen(false)} round={round} onReset={handleReset} />

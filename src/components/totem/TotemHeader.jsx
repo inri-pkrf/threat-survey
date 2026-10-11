@@ -6,19 +6,21 @@ import { LOGO_URL } from "@/lib/threats";
 
 export default function TotemHeader({ isResults, targetMs, totalVotes, counterRef }) {
   return (
-    <div className="mb-5">
+    <div className="mb-4">
       <div className="flex items-start justify-between">
-        <Image src={LOGO_URL} alt="לוגו הרשות" className="h-28 w-[240px]" fittingType="fit" />
-        <div className="flex flex-col items-start gap-3">
+        <Image src={LOGO_URL} alt="לוגו הרשות" className="h-24 w-[210px]" fittingType="fit" />
+        <div className="flex flex-col items-start gap-2">
           {isResults ? (
-            <div className="rounded-2xl border border-border bg-card px-6 py-4 font-heading text-2xl font-bold text-foreground shadow-sm">
+            <div className="rounded-xl border border-border bg-card px-5 py-2 font-heading text-xl font-bold text-foreground shadow-sm">
               התוצאות חשופות עד לאיפוס המנהל
             </div>
           ) : (
             <>
-              <span className="font-heading text-2xl text-foreground">חשיפת תוצאות בעוד:</span>
-              <CountdownTimer targetMs={targetMs} />
-              <VotesBadge ref={counterRef} total={totalVotes} />
+              <span className="font-heading text-xl text-foreground">חשיפת תוצאות בעוד:</span>
+              <div className="flex items-start gap-3">
+                <CountdownTimer targetMs={targetMs} />
+                <VotesBadge ref={counterRef} total={totalVotes} />
+              </div>
             </>
           )}
         </div>

@@ -1,18 +1,16 @@
 import React from "react";
-import { Vote } from "lucide-react";
+import { StickyNote } from "lucide-react";
 
 const VotesBadge = React.forwardRef(function VotesBadge({ total }, ref) {
   return (
-    <div ref={ref} className="flex items-center gap-3 rounded-2xl border border-border bg-card px-5 py-3 shadow-sm">
-      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-secondary">
-        <Vote className="h-8 w-8 text-foreground" />
-      </div>
-      <div>
-        <div className="font-heading text-4xl font-extrabold leading-none text-foreground tabular-nums">
+    <div ref={ref} className="w-[92px] rounded-xl border border-border bg-card px-2 py-2 text-center shadow-sm">
+      <div className="relative mx-auto flex h-10 w-10 items-center justify-center">
+        <StickyNote className="absolute inset-0 h-full w-full text-chart-4" fill="currentColor" strokeWidth={1.2} />
+        <span dir="ltr" className="relative font-heading text-base font-extrabold leading-none text-foreground tabular-nums">
           {total.toLocaleString("he-IL")}
-        </div>
-        <div className="mt-1 font-heading text-lg text-muted-foreground">סך ההצבעות בכל המסכים</div>
+        </span>
       </div>
+      <div className="mt-1 font-heading text-base text-muted-foreground">הצבעות</div>
     </div>
   );
 });

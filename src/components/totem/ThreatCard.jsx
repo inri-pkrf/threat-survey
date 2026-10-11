@@ -16,8 +16,10 @@ export default function ThreatCard({ threat, highlighted, onVote }) {
     >
       <Image src={threat.image} alt={threat.name} className="absolute inset-0 h-full w-full" fittingType="fill" />
       {highlighted && <div className="absolute inset-0 bg-primary/10" />}
-      <div className="absolute inset-x-0 bottom-0 flex min-h-[72px] items-center justify-center bg-card/95 px-3 py-2">
-        <span className="text-center font-heading text-[44px] font-extrabold leading-tight text-foreground">{threat.name}</span>
+      <div className="absolute inset-x-2 top-2 flex justify-center">
+        <span className="rounded-lg bg-card/85 px-3 py-0.5 text-center font-heading text-[26px] font-bold leading-snug text-foreground shadow-sm">
+          {threat.name}
+        </span>
       </div>
     </motion.button>
   );
