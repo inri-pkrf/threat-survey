@@ -27,6 +27,9 @@ export default function TotemHeader({ isResults, targetMs, totalVotes, counterRe
       </div>
       {isResults ? (
         <>
+          <h1 className="mt-1 text-center font-display text-[104px] font-bold leading-none text-foreground">
+            מהו האיום המרכזי על הרשות שלך?
+          </h1>
           <p className="mt-1 text-center font-heading text-[30px] leading-snug text-muted-foreground">
             הכרת האיומים המרכזיים על רשויות במצבי חירום היא הבסיס להיערכות נכונה ולשמירה על רציפות התפקוד הממלכתי.
           </p>

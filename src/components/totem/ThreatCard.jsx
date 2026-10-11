@@ -18,7 +18,9 @@ export default function ThreatCard({ threat, highlighted, onVote }) {
         src={threat.image}
         alt={threat.name}
         className="absolute inset-0 h-full w-full"
-        fittingType={threat.id === "flood" || threat.id === "infiltration" ? "fit" : "fill"}
+        fittingType="fill"
+        focalPointX={0.5}
+        focalPointY={threat.id === "flood" || threat.id === "infiltration" ? 1 : 0.5}
       />
       {highlighted && <div className="absolute inset-0 bg-primary/10" />}
       <div className="absolute inset-x-2 top-2 flex justify-center">
