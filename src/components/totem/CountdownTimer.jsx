@@ -11,11 +11,12 @@ export default function CountdownTimer({ targetMs }) {
   }, []);
 
   const diff = Math.max(0, targetMs - now);
+  // RTL: הפריט הראשון מופיע מימין — מסדרים שניות, דקות, שעות, ימים
   const cells = [
-    { v: Math.floor(diff / 86400000), label: "ימים" },
-    { v: Math.floor((diff % 86400000) / 3600000), label: "שעות" },
+    { v: Math.floor(diff % 60000) / 1000, label: "שניות" },
     { v: Math.floor((diff % 3600000) / 60000), label: "דקות" },
-    { v: Math.floor((diff % 60000) / 1000), label: "שניות" },
+    { v: Math.floor((diff % 86400000) / 3600000), label: "שעות" },
+    { v: Math.floor(diff / 86400000), label: "ימים" },
   ];
 
   return (
