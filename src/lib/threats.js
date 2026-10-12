@@ -1,7 +1,7 @@
 export const THREATS = [
   { id: "rockets", name:`מתקפת כטבמ"ים`, image: "https://media.base44.com/images/public/6ac770db8d8a93e3b47194b5/07afe8dac_image.png" },
   { id: "missiles", name: "נפילת טיל", image: "https://media.base44.com/images/public/6ac770db8d8a93e3b47194b5/4269b9a47_image.png" },
-  { id: "earthquake", name: "רעידת אדמה", image: "https://media.base44.com/images/public/user_6885e537f90714e91be36212/5ee95edaa_earthquake.jpeg" },
+  { id: "earthquake", name: "רעידת אדמה", image: "https://media.base44.com/images/public/6ac770db8d8a93e3b47194b5/a1c0117bb_image.png" },
   { id: "fire", name: "שריפה", image: "https://media.base44.com/images/public/6ac770db8d8a93e3b47194b5/707f37b54_image.png" },
   { id: "flood", name: "שיטפון", image: "https://media.base44.com/images/public/6ac770db8d8a93e3b47194b5/0498d078d_flood.jpeg" },
   { id: "foreign", name: "השפעות תודעה", image: "https://media.base44.com/images/public/user_6885e537f90714e91be36212/ced6bc207_ForeignInfluence.jpeg" },
