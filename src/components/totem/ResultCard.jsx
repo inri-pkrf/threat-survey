@@ -17,12 +17,16 @@ export default function ResultCard({ threat, index }) {
         </span>
       </div>
       <div className="flex min-w-0 flex-1 flex-col items-center justify-center gap-2 px-6 text-center text-foreground">
-        <div className="flex items-center gap-3">
-          <span className="font-heading text-[56px] font-extrabold leading-tight">{threat.name}</span>
+        <span className="font-heading text-[56px] font-extrabold leading-tight">{threat.name}</span>
+        <div className="flex items-baseline justify-center gap-4" dir="rtl">
+          <span dir="ltr" className="whitespace-nowrap font-heading text-[104px] font-extrabold leading-none tabular-nums">
+            {threat.pct.toLocaleString("he-IL")}%
+          </span>
+          <span className="font-heading text-3xl font-bold text-muted-foreground">
+            ({threat.count} מצביעים)
+          </span>
         </div>
-        <span dir="ltr" className="whitespace-nowrap font-heading text-[104px] font-extrabold leading-none tabular-nums">
-          {threat.pct.toLocaleString("he-IL")}%
-        </span>
+
         <div className="mt-1 h-4 w-4/5 overflow-hidden rounded-full bg-secondary">
           <motion.div
             initial={{ width: 0 }}

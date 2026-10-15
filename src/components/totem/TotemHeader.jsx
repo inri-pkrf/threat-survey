@@ -11,8 +11,17 @@ export default function TotemHeader({ isResults, targetMs, totalVotes, counterRe
         <Image src={LOGO_URL} alt="לוגו הרשות" className="h-24 w-[210px]" fittingType="fit" />
         <div className="flex flex-col items-start gap-2">
           {isResults ? (
-            <div className="rounded-xl border border-border bg-card px-5 py-2 font-heading text-xl font-bold text-foreground shadow-sm">
-              התוצאות חשופות עד לאיפוס המנהלת
+            <div className="flex items-center gap-3">
+              <div className="flex flex-col items-end gap-1">
+              <span className="font-heading text-xl font-bold text-foreground">
+                {new Date().toLocaleDateString('he-IL')}
+              </span>
+              <div className="rounded-xl border border-border bg-card px-5 py-2 font-heading text-xl font-bold text-foreground shadow-sm">
+                התוצאות חשופות עד לאיפוס המנהלת
+              </div>
+                            </div>
+
+              <VotesBadge ref={counterRef} total={totalVotes} />
             </div>
           ) : (
             <>
@@ -40,9 +49,6 @@ export default function TotemHeader({ isResults, targetMs, totalVotes, counterRe
           <h1 className="mt-1 text-center font-display text-[104px] font-bold leading-none text-foreground">
             מהו האיום המרכזי על הרשות שלך?
           </h1>
-          <p className="mt-2 text-center font-heading text-[34px] font-semibold text-foreground">
-            יש לבחור באפשרות הנכונה ביותר מבין האפשרויות המוצגות מטה
-          </p>
           <div className="mt-1 text-center font-heading text-[24px] leading-snug text-muted-foreground">
             <p>הניסיון שלכם חשוב לנו. לחצו על התרחיש שהכי מאיים על הארגון שלכם והשפיעו על מפת האיומים של המשתתפים.</p>
           </div>

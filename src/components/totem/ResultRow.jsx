@@ -17,9 +17,14 @@ export default function ResultRow({ threat, rank, index }) {
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-3">
           <span className="truncate font-heading text-[30px] font-bold leading-tight text-foreground">{threat.name}</span>
-          <span dir="ltr" className="shrink-0 font-heading text-[36px] font-extrabold leading-none text-foreground tabular-nums">
-            {threat.pct.toLocaleString("he-IL")}%
-          </span>
+          <div className="flex items-baseline gap-3 shrink-0" dir="rtl">
+            <span className="font-heading text-[36px] font-extrabold leading-none text-foreground tabular-nums">
+              {threat.pct.toLocaleString("he-IL")}%
+            </span>
+            <span className="text-xl font-bold text-muted-foreground">
+              ({threat.count} מצביעים)
+            </span>
+          </div>
         </div>
         <div className="mt-1 h-3 overflow-hidden rounded-full bg-secondary">
           <motion.div
