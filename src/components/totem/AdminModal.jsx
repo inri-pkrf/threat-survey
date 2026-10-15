@@ -4,7 +4,7 @@ import { X, Lock, CalendarClock } from "lucide-react";
 import Numpad from "@/components/totem/Numpad";
 import DateTimePicker from "@/components/totem/DateTimePicker";
 
-export default function AdminModal({ open, onClose, round, onReset }) {
+export default function AdminModal({ open, onClose, onVerify, onReset }) {
   const [step, setStep] = useState("code");
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
@@ -17,8 +17,14 @@ export default function AdminModal({ open, onClose, round, onReset }) {
     }
   }, [open]);
 
-  const submitCode = () => {
-    if (round && code === round.admin_code) {
+  const submitCode = async () => {
+    let ok = false;
+    try {
+      ok = await onVerify(code);
+    } catch (e) {
+      ok = false;
+    }
+    if (ok) {
       setStep("reset");
     } else {
       setError("קוד שגוי, יש לנסות שנית");
@@ -79,7 +85,7 @@ export default function AdminModal({ open, onClose, round, onReset }) {
                 <p className="mt-2 font-heading text-xl text-muted-foreground">
                   בחרו את מועד חשיפת התוצאות של הסבב הבא. באישור, הקולות יתאפסו בכל שלושת המסכים.
                 </p>
-                <DateTimePicker onConfirm={async (date) => { await onReset(date); onClose(); }} />
+                <DateTimePicker onConfirm={async (date) => { await onReset(date, code); onClose(); }} />
               </React.Fragment>
             )}
           </motion.div>

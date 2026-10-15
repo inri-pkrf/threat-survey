@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { KeyRound, Maximize2 } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { fetchRound, fetchCounts, castVote, resetRound, verifyAdminCode, subscribeToChanges } from "@/api/db";
 import KioskScaler from "@/components/totem/KioskScaler";
 import TotemHeader from "@/components/totem/TotemHeader";
 import ThreatGrid from "@/components/totem/ThreatGrid";
@@ -23,33 +23,36 @@ export default function Totem() {
   useEffect(() => {
     let active = true;
     const load = async () => {
-      const rsRaw = await base44.entities.RoundState.list();
-      const vcRaw = await base44.entities.VoteCount.filter({}, { limit: 20 });
-      if (!active) return;
-      const rs = Array.isArray(rsRaw) ? rsRaw : rsRaw.items || [];
-      const vc = Array.isArray(vcRaw) ? vcRaw : vcRaw.items || [];
-      if (rs.length) setRound(rs[0]);
-      setCounts((prev) => {
-        const next = { ...prev };
-        vc.forEach((v) => { next[v.threat_id] = v.count || 0; });
-        return next;
-      });
+      try {
+        const [rs, vc] = await Promise.all([fetchRound(), fetchCounts()]);
+        if (!active) return;
+        if (rs) setRound(rs);
+        setCounts((prev) => {
+          const next = { ...prev };
+          vc.forEach((v) => { next[v.threat_id] = v.count || 0; });
+          return next;
+        });
+      } catch (e) {
+        console.error("טעינת הנתונים נכשלה", e);
+      }
     };
     load();
-    const unsubRound = base44.entities.RoundState.subscribe(() => { load(); });
-    const unsubVotes = base44.entities.VoteCount.subscribe((ev) => {
-      if (ev.type === "update" && ev.data && ev.data.threat_id) {
-        setCounts((c) => ({ ...c, [ev.data.threat_id]: ev.data.count }));
-      } else {
-        load();
-      }
+    const unsubscribe = subscribeToChanges({
+      onRound: load,
+      onVote: (payload) => {
+        const row = payload.new;
+        if (payload.eventType === "UPDATE" && row && row.threat_id) {
+          setCounts((c) => ({ ...c, [row.threat_id]: row.count }));
+        } else {
+          load();
+        }
+      },
     });
     const tick = setInterval(() => setNow(Date.now()), 1000);
     const poll = setInterval(load, 10000);
     return () => {
       active = false;
-      unsubRound();
-      unsubVotes();
+      unsubscribe();
       clearInterval(tick);
       clearInterval(poll);
     };
@@ -62,7 +65,7 @@ export default function Totem() {
     if (isResults || !round) return;
     // עדכון מיידי לצורך החיווי, והרשמה במאגר המשותף לכל המסכים
     setCounts((c) => ({ ...c, [threatId]: (c[threatId] || 0) + 1 }));
-    base44.entities.VoteCount.updateMany({ threat_id: threatId }, { $inc: { count: 1 } });
+    castVote(threatId).catch((e) => console.error("רישום ההצבעה נכשל", e));
 
     setHighlights((h) => ({ ...h, [threatId]: true }));
     setTimeout(() => setHighlights((h) => ({ ...h, [threatId]: false })), 3000);
@@ -91,16 +94,15 @@ export default function Totem() {
     else document.documentElement.requestFullscreen();
   };
 
-  const handleReset = async (revealDate) => {
+  const handleReset = async (revealDate, code) => {
     if (revealDate.getTime() <= Date.now()) throw new Error("יש לבחור מועד חשיפה עתידי");
-    await base44.entities.VoteCount.updateMany({ count: { $ne: 0 } }, { $set: { count: 0 } });
-    const patch = {
-      reveal_at: revealDate.toISOString(),
-      round_started_at: new Date().toISOString(),
-    };
-    await base44.entities.RoundState.update(round.id, patch);
+    try {
+      await resetRound(code, revealDate);
+    } catch (e) {
+      throw new Error("האיפוס לא הושלם, נסו שוב");
+    }
     setCounts(Object.fromEntries(THREATS.map((t) => [t.id, 0])));
-    setRound((r) => (r ? { ...r, ...patch } : r));
+    setRound({ reveal_at: revealDate.toISOString(), round_started_at: new Date().toISOString() });
   };
 
   return (
@@ -156,7 +158,7 @@ export default function Totem() {
           <Maximize2 className="h-5 w-5" />
         </button>
 
-        <AdminModal open={adminOpen} onClose={() => setAdminOpen(false)} round={round} onReset={handleReset} />
+        <AdminModal open={adminOpen} onClose={() => setAdminOpen(false)} onVerify={verifyAdminCode} onReset={handleReset} />
       </div>
     </KioskScaler>
   );
