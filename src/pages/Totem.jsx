@@ -7,6 +7,8 @@ import TotemHeader from "@/components/totem/TotemHeader";
 import ThreatGrid from "@/components/totem/ThreatGrid";
 import ResultsBoard from "@/components/totem/ResultsBoard";
 import AdminModal from "@/components/totem/AdminModal";
+import AdminHistoryModal from "@/components/totem/AdminHistoryModal";
+
 import { THREATS } from "@/lib/threats";
 
 export default function Totem() {
@@ -18,6 +20,49 @@ export default function Totem() {
   const [adminOpen, setAdminOpen] = useState(false);
   const canvasRef = useRef(null);
   const counterRef = useRef(null);
+
+  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+
+  const [surveysList, setSurveysList] = useState([
+    {
+      id: 1,
+      title: 'סקר איומים מרכזיים',
+      date: '16/10/2026',
+      duration: '4 שעות',
+      status: 'active',
+      results: [
+        { name: 'איום א\'', votes: 42, percentage: 52 },
+        { name: 'איום ב\'', votes: 25, percentage: 31 },
+        { name: 'איום א\'', votes: 42, percentage: 52 },
+        { name: 'איום ב\'', votes: 25, percentage: 31 },
+        { name: 'איום א\'', votes: 42, percentage: 52 },
+        { name: 'איום ב\'', votes: 25, percentage: 31 },
+        { name: 'איום א\'', votes: 42, percentage: 52 },
+        { name: 'איום ב\'', votes: 25, percentage: 31 },
+        { name: 'איום א\'', votes: 42, percentage: 52 },
+        { name: 'איום ב\'', votes: 25, percentage: 31 },
+        { name: 'איום א\'', votes: 42, percentage: 52 },
+        { name: 'איום ג\'', votes: 14, percentage: 17 }
+      ]
+    },
+    {
+      id: 2,
+      title: 'סקר מוכנות שבוע שעבר',
+      date: '09/10/2026',
+      duration: '6 שעות',
+      status: 'closed',
+      results: [
+        { name: 'תתרחיש 1', votes: 60, percentage: 60 },
+        { name: 'תרחיש 2', votes: 40, percentage: 40 }
+      ]
+    }
+  ]);
+
+  const handleUpdateTitle = (surveyId, newTitle) => {
+    setSurveysList((prev) =>
+      prev.map((s) => (s.id === surveyId ? { ...s, title: newTitle } : s))
+    );
+  };
 
   // טעינה, הרשמה לזמן אמת ורענון תקופתי — סנכרון מלא בין שלושת המסכים
   useEffect(() => {
@@ -159,6 +204,21 @@ export default function Totem() {
         </button>
 
         <AdminModal open={adminOpen} onClose={() => setAdminOpen(false)} onVerify={verifyAdminCode} onReset={handleReset} />
+        <button
+          type="button"
+          onClick={() => setIsAdminModalOpen(true)}
+          className="absolute bottom-5 left-20 z-30 flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card/80 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          title="היסטוריית סקרים וניהול"
+        >
+          📋
+        </button>
+        {/* רכיב חלון ההיסטוריה והאדמין */}
+        <AdminHistoryModal
+          isOpen={isAdminModalOpen}
+          onClose={() => setIsAdminModalOpen(false)}
+          surveysData={surveysList}
+          onUpdateTitle={handleUpdateTitle}
+        />
       </div>
     </KioskScaler>
   );
