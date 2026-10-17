@@ -19,6 +19,16 @@ export async function fetchCounts() {
   return data || [];
 }
 
+export async function fetchVotingWindow() {
+  const { data, error } = await supabase
+    .from("voting_window")
+    .select("open_time, close_time")
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
 export async function castVote(threatId) {
   const { error } = await supabase.rpc("cast_vote", { p_threat_id: threatId });
   if (error) throw error;

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { ArrowRight, Lock, ChevronDown, ChevronUp, Pencil, Check, Calendar, ChevronRight, ChevronLeft } from "lucide-react";
 import Numpad from "@/components/totem/Numpad";
 
-export default function AdminHistoryModal({ isOpen, onClose, surveysData = [], onUpdateTitle }) {
+export default function AdminHistoryModal({ isOpen, onClose, surveysData = [], onUpdateTitle, onVerify }) {
   const [historyStep, setHistoryStep] = useState("code");
   const [historyCode, setHistoryCode] = useState("");
   const [historyError, setHistoryError] = useState("");
@@ -25,8 +25,14 @@ export default function AdminHistoryModal({ isOpen, onClose, surveysData = [], o
     }
   }, [isOpen]);
 
-  const submitHistoryCode = () => {
-    if (historyCode === '8341') {
+  const submitHistoryCode = async () => {
+    let ok = false;
+    try {
+      ok = onVerify ? await onVerify(historyCode) : false;
+    } catch (e) {
+      ok = false;
+    }
+    if (ok) {
       setHistoryStep("history");
       setHistoryError("");
     } else {

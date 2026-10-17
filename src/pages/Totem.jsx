@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { KeyRound, Maximize2 } from "lucide-react";
-import { fetchRound, fetchCounts, castVote, resetRound, verifyAdminCode, subscribeToChanges } from "@/api/db";
+import { fetchRound, fetchCounts, fetchVotingWindow, castVote, resetRound, verifyAdminCode, subscribeToChanges } from "@/api/db";
 import KioskScaler from "@/components/totem/KioskScaler";
 import TotemHeader from "@/components/totem/TotemHeader";
 import ThreatGrid from "@/components/totem/ThreatGrid";
@@ -10,9 +10,25 @@ import AdminModal from "@/components/totem/AdminModal";
 import AdminHistoryModal from "@/components/totem/AdminHistoryModal";
 
 import { THREATS } from "@/lib/threats";
+import { DEFAULT_WINDOW, isWithinWindow, formatTime } from "@/lib/votingWindow";
+
+// ערבוב אקראי של סדר המלבנים (מובטח שהסדר החדש שונה מהקודם)
+function shuffleDifferent(order) {
+  let next = order;
+  for (let tries = 0; tries < 10 && next.join() === order.join(); tries++) {
+    next = [...order];
+    for (let i = next.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [next[i], next[j]] = [next[j], next[i]];
+    }
+  }
+  return next;
+}
 
 export default function Totem() {
   const [round, setRound] = useState(null);
+  const [votingWindow, setVotingWindow] = useState(DEFAULT_WINDOW);
+  const [order, setOrder] = useState(() => THREATS.map((t) => t.id));
   const [counts, setCounts] = useState(() => Object.fromEntries(THREATS.map((t) => [t.id, 0])));
   const [now, setNow] = useState(() => Date.now());
   const [flies, setFlies] = useState([]);
@@ -69,9 +85,14 @@ export default function Totem() {
     let active = true;
     const load = async () => {
       try {
-        const [rs, vc] = await Promise.all([fetchRound(), fetchCounts()]);
+        const [rs, vc, vw] = await Promise.all([
+          fetchRound(),
+          fetchCounts(),
+          fetchVotingWindow().catch(() => null),
+        ]);
         if (!active) return;
         if (rs) setRound(rs);
+        if (vw) setVotingWindow(vw);
         setCounts((prev) => {
           const next = { ...prev };
           vc.forEach((v) => { next[v.threat_id] = v.count || 0; });
@@ -104,13 +125,15 @@ export default function Totem() {
   }, []);
 
   const isResults = round ? now >= new Date(round.reveal_at).getTime() : false;
+  const isOpen = isWithinWindow(votingWindow, now);
   const totalVotes = Object.values(counts).reduce((a, b) => a + (b || 0), 0);
 
   const handleVote = (threatId, cardEl) => {
-    if (isResults || !round) return;
+    if (isResults || !round || !isOpen) return;
     // עדכון מיידי לצורך החיווי, והרשמה במאגר המשותף לכל המסכים
     setCounts((c) => ({ ...c, [threatId]: (c[threatId] || 0) + 1 }));
     castVote(threatId).catch((e) => console.error("רישום ההצבעה נכשל", e));
+    setOrder((o) => shuffleDifferent(o));
 
     setHighlights((h) => ({ ...h, [threatId]: true }));
     setTimeout(() => setHighlights((h) => ({ ...h, [threatId]: false })), 3000);
@@ -167,7 +190,7 @@ export default function Totem() {
           ) : isResults ? (
             <ResultsBoard counts={counts} totalVotes={totalVotes} />
           ) : (
-            <ThreatGrid counts={counts} highlights={highlights} onVote={handleVote} />
+            <ThreatGrid counts={counts} highlights={highlights} onVote={handleVote} order={order} closed={!isOpen} openTime={formatTime(votingWindow.open_time)} closeTime={formatTime(votingWindow.close_time)} />
           )}
         </div>
 
@@ -216,6 +239,7 @@ export default function Totem() {
         <AdminHistoryModal
           isOpen={isAdminModalOpen}
           onClose={() => setIsAdminModalOpen(false)}
+          onVerify={verifyAdminCode}
           surveysData={surveysList}
           onUpdateTitle={handleUpdateTitle}
         />
