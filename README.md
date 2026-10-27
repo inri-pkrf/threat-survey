@@ -47,3 +47,23 @@ update public.voting_window set open_time = '08:00', close_time = '17:00' where 
 
 עורכים את הקוד ב-GitHub (או במחשב) ו-Vercel מתעדכן לבד. אל תערכי יותר דרך העורך של base44:
 הסנכרון שלו עם GitHub יכול לדרוס שינויים.
+
+
+## מסך ההיסטוריה (נתונים אמיתיים)
+
+מסך ההיסטוריה (📋) קורא את כל הסקרים מהטבלה `vote_log`, מחולק לשבועות (ראשון עד שבת) עם חיצים למעבר בין שבועות.
+סקר מופיע מיד כשהוא מתחיל, ובזמן שהסקר פתוח הוא מסומן "תוצאות ביניים". שמות סקרים שנערכו נשמרים בטבלה `survey_titles`.
+
+הגדרה (פעם אחת): ב-Supabase -> SQL Editor הדביקי והריצי את `supabase/history.sql`. הקובץ מוסיף טבלה ושתי פונקציות
+ולא משנה שום דבר קיים. עד שמריצים אותו, מסך ההיסטוריה יראה "קוד שגוי".
+
+## תמונת מסך יומית במייל
+
+ב-16:30 (בסגירת הסקר) נשלחת למייל (`REPORT_TO_EMAIL`, אותו מייל של הדוח הכתוב) תמונה של מסך התוצאות.
+זה רץ ב-GitHub Actions (`.github/workflows/daily-snapshot.yml`), בנפרד מהאתר, וגם מ-Vercel.
+ב-GitHub -> Settings -> Secrets and variables -> Actions -> New repository secret הוסיפי ארבעה סודות, באותם ערכים כמו ב-Vercel:
+`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `REPORT_TO_EMAIL`.
+
+**בדיקה ידנית:** GitHub -> Actions -> Daily results screenshot -> Run workflow, וסימון force. המייל אמור להגיע תוך כמה דקות.
+אם אין הצבעות באותו יום, בלי force לא נשלח כלום (למשל בשישי ובשבת).
+GitHub עלול לאחר בכמה דקות, ולכן המייל מגיע בדרך כלל 16:31 עד 16:45.

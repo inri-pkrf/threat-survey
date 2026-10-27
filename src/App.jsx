@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import ScrollToTop from './components/ScrollToTop';
 import Totem from './pages/Totem';
+import Snapshot from './pages/Snapshot';
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
         <ScrollToTop />
         <Routes>
           <Route path="/" element={<Totem />} />
+          <Route path="/snapshot" element={<Snapshot />} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
       </Router>

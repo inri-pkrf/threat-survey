@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
-import { ArrowRight, Lock, ChevronDown, ChevronUp, Pencil, Check, Calendar, ChevronRight, ChevronLeft } from "lucide-react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import { ArrowRight, Lock, ChevronDown, ChevronUp, Pencil, Check, X, Calendar, ChevronRight, ChevronLeft } from "lucide-react";
 import Numpad from "@/components/totem/Numpad";
+import { listWeeks, weekLabel } from "@/lib/history";
 
-export default function AdminHistoryModal({ isOpen, onClose, surveysData = [], onUpdateTitle, onVerify }) {
+export default function AdminHistoryModal({ isOpen, onClose, surveysData = [], onUpdateTitle, onUnlock, todayIso }) {
   const [historyStep, setHistoryStep] = useState("code");
   const [historyCode, setHistoryCode] = useState("");
   const [historyError, setHistoryError] = useState("");
@@ -10,9 +11,17 @@ export default function AdminHistoryModal({ isOpen, onClose, surveysData = [], o
   const [expandedSurveyId, setExpandedSurveyId] = useState(null);
   const [editingSurveyId, setEditingSurveyId] = useState(null);
   const [newTitle, setNewTitle] = useState('');
-  const [activeTab, setActiveTab] = useState("all");
+  const [activeWeek, setActiveWeek] = useState(null);
+  const [titleError, setTitleError] = useState("");
+  const [savingTitle, setSavingTitle] = useState(false);
+  const unlockingRef = useRef(false);
 
   const tabsContainerRef = useRef(null);
+
+  // שבועות (ישן -> חדש). ברירת מחדל: השבוע האחרון
+  const weeks = useMemo(() => listWeeks(surveysData, todayIso), [surveysData, todayIso]);
+  const selectedWeek = activeWeek && weeks.includes(activeWeek) ? activeWeek : weeks[weeks.length - 1];
+  const weekIndex = weeks.indexOf(selectedWeek);
 
   useEffect(() => {
     if (isOpen) {
@@ -21,17 +30,28 @@ export default function AdminHistoryModal({ isOpen, onClose, surveysData = [], o
       setHistoryError("");
       setEditingSurveyId(null);
       setExpandedSurveyId(null);
-      setActiveTab("all");
+      setActiveWeek(null);
+      setTitleError("");
     }
   }, [isOpen]);
 
-  const submitHistoryCode = async () => {
+  // הטאב הנבחר נשאר בטווח הראייה
+  useEffect(() => {
+    const el = tabsContainerRef.current && tabsContainerRef.current.querySelector('[data-active="true"]');
+    if (el && el.scrollIntoView) el.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+  }, [selectedWeek, historyStep]);
+
+  // הקוד נבדק בשרת (הפונקציה שטוענת את ההיסטוריה דורשת קוד מנהלת תקין)
+  const submitHistoryCode = async (code = historyCode) => {
+    if (code.length < 4 || unlockingRef.current) return;
+    unlockingRef.current = true;
     let ok = false;
     try {
-      ok = onVerify ? await onVerify(historyCode) : false;
+      ok = onUnlock ? await onUnlock(code) : false;
     } catch (e) {
       ok = false;
     }
+    unlockingRef.current = false;
     if (ok) {
       setHistoryStep("history");
       setHistoryError("");
@@ -41,29 +61,30 @@ export default function AdminHistoryModal({ isOpen, onClose, surveysData = [], o
     }
   };
 
-  const handleSaveTitle = (surveyId) => {
-    if (!newTitle.trim()) return;
-    if (onUpdateTitle) {
-      onUpdateTitle(surveyId, newTitle);
+  const handleSaveTitle = async (surveyId) => {
+    if (!newTitle.trim() || savingTitle) return;
+    setSavingTitle(true);
+    setTitleError("");
+    try {
+      if (onUpdateTitle) await onUpdateTitle(surveyId, newTitle.trim());
+      setEditingSurveyId(null);
+    } catch (e) {
+      setTitleError("שמירת השם נכשלה, נסו שוב");
     }
-    setEditingSurveyId(null);
+    setSavingTitle(false);
   };
 
-  const scrollTabs = (direction) => {
-    if (tabsContainerRef.current) {
-      const scrollAmount = 250;
-      tabsContainerRef.current.scrollBy({
-        left: direction === 'right' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth'
-      });
+  const goWeek = (delta) => {
+    const next = weeks[weekIndex + delta];
+    if (next) {
+      setActiveWeek(next);
+      setExpandedSurveyId(null);
+      setEditingSurveyId(null);
+      setTitleError("");
     }
   };
 
-  const filteredSurveys = surveysData.filter((survey) => {
-    if (activeTab === "all") return true;
-    return survey.date === activeTab;
-  });
-
+  const filteredSurveys = surveysData.filter((survey) => survey.week === selectedWeek);
   if (!isOpen) return null;
 
   return (
@@ -123,18 +144,10 @@ export default function AdminHistoryModal({ isOpen, onClose, surveysData = [], o
                   setHistoryCode(v);
                   setHistoryError("");
                   if (v.length === 4) {
-                    setTimeout(() => {
-                      if (v === '8341') {
-                        setHistoryStep("history");
-                        setHistoryError("");
-                      } else {
-                        setHistoryError("קוד שגוי, יש לנסות שנית");
-                        setHistoryCode("");
-                      }
-                    }, 200);
+                    setTimeout(() => submitHistoryCode(v), 200);
                   }
                 }}
-                onSubmit={submitHistoryCode}
+                onSubmit={() => submitHistoryCode()}
               />
             </div>
           </div>
@@ -142,49 +155,49 @@ export default function AdminHistoryModal({ isOpen, onClose, surveysData = [], o
           /* אזור הניהול וההיסטוריה לאחר הזנת קוד */
           <div className="w-full flex-1 flex flex-col overflow-hidden">
             
-            {/* שורת הטאבים לרוחב כל המסך עם חיצי גלילה בצדדים */}
+            {/* שורת הטאבים: שבוע לכל טאב (ראשון עד שבת), עם חיצים למעבר בין שבועות */}
             <div className="w-full bg-card/80 border-b-2 border-border px-8 py-4 shrink-0 flex items-center gap-3">
               <button
-                onClick={() => scrollTabs('right')}
-                className="p-2.5 rounded-xl border border-border bg-background hover:bg-secondary text-foreground shrink-0 shadow-sm transition"
-                title="גלול ימינה"
+                onClick={() => goWeek(-1)}
+                disabled={weekIndex <= 0}
+                className="p-2.5 rounded-xl border border-border bg-background hover:bg-secondary text-foreground shrink-0 shadow-sm transition disabled:opacity-30 disabled:cursor-not-allowed"
+                title="שבוע קודם"
+                aria-label="שבוע קודם"
               >
                 <ChevronRight className="w-6 h-6" />
               </button>
 
-              <div 
+              <div
                 ref={tabsContainerRef}
                 className="flex-1 flex gap-4 overflow-x-auto scrollbar-none py-1 scroll-smooth"
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
               >
-                <button
-                  onClick={() => setActiveTab("all")}
-                  className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-heading font-bold text-lg transition-all shrink-0 ${
-                    activeTab === "all" ? "bg-primary text-primary-foreground shadow-md" : "bg-background text-foreground border border-border hover:bg-secondary"
-                  }`}
-                >
-                  <Calendar className="w-5 h-5" />
-                  כל הסקרים
-                </button>
-
-                {surveysData.map((survey) => (
+                {weeks.map((week) => (
                   <button
-                    key={survey.id}
-                    onClick={() => setActiveTab(survey.date)}
+                    key={week}
+                    data-active={week === selectedWeek}
+                    onClick={() => {
+                      setActiveWeek(week);
+                      setExpandedSurveyId(null);
+                      setEditingSurveyId(null);
+                      setTitleError("");
+                    }}
                     className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-heading font-bold text-lg transition-all shrink-0 ${
-                      activeTab === survey.date ? "bg-primary text-primary-foreground shadow-md" : "bg-background text-foreground border border-border hover:bg-secondary"
+                      week === selectedWeek ? "bg-primary text-primary-foreground shadow-md" : "bg-background text-foreground border border-border hover:bg-secondary"
                     }`}
                   >
                     <Calendar className="w-5 h-5" />
-                    שבוע {survey.date}
+                    <span dir="ltr">{weekLabel(week)}</span>
                   </button>
                 ))}
               </div>
 
               <button
-                onClick={() => scrollTabs('left')}
-                className="p-2.5 rounded-xl border border-border bg-background hover:bg-secondary text-foreground shrink-0 shadow-sm transition"
-                title="גלול שמאלה"
+                onClick={() => goWeek(1)}
+                disabled={weekIndex >= weeks.length - 1}
+                className="p-2.5 rounded-xl border border-border bg-background hover:bg-secondary text-foreground shrink-0 shadow-sm transition disabled:opacity-30 disabled:cursor-not-allowed"
+                title="שבוע הבא"
+                aria-label="שבוע הבא"
               >
                 <ChevronLeft className="w-6 h-6" />
               </button>
@@ -194,7 +207,7 @@ export default function AdminHistoryModal({ isOpen, onClose, surveysData = [], o
             <div className="w-full max-w-5xl mx-auto flex-1 flex flex-col overflow-hidden px-6 pt-8">
               <div className="flex-1 space-y-4 overflow-y-auto px-2 pb-10">
                 {filteredSurveys.length === 0 ? (
-                  <p className="text-center font-heading text-2xl text-muted-foreground py-24">אין סקרים להצגה תחת שבוע זה.</p>
+                  <p className="text-center font-heading text-2xl text-muted-foreground py-24">עדיין אין סקרים בשבוע זה.</p>
                 ) : (
                   filteredSurveys.map((survey) => {
                     const isActive = survey.status === 'active';
@@ -234,19 +247,23 @@ export default function AdminHistoryModal({ isOpen, onClose, surveysData = [], o
                                   onChange={(e) => setNewTitle(e.target.value)}
                                   className="bg-background text-foreground px-4 py-2 rounded-2xl text-xl w-full border-2 border-ring focus:outline-none"
                                   autoFocus
+                                  maxLength={120}
+                                  onKeyDown={(e) => { if (e.key === "Enter") handleSaveTitle(survey.id); }}
                                 />
                                 <button
                                   onClick={() => handleSaveTitle(survey.id)}
-                                  className="p-3 text-primary hover:bg-secondary rounded-2xl transition"
+                                  disabled={savingTitle}
+                                  className="p-3 text-primary hover:bg-secondary rounded-2xl transition disabled:opacity-50"
                                 >
                                   <Check className="w-6 h-6" />
                                 </button>
                                 <button
-                                  onClick={() => setEditingSurveyId(null)}
+                                  onClick={() => { setEditingSurveyId(null); setTitleError(""); }}
                                   className="p-3 text-destructive hover:bg-secondary rounded-2xl transition"
                                 >
                                   <X className="w-6 h-6" />
                                 </button>
+                                {titleError && <span className="text-destructive font-bold text-base shrink-0">{titleError}</span>}
                               </div>
                             ) : (
                               <>
@@ -257,6 +274,7 @@ export default function AdminHistoryModal({ isOpen, onClose, surveysData = [], o
                                   onClick={() => {
                                     setEditingSurveyId(survey.id);
                                     setNewTitle(survey.title);
+                                    setTitleError("");
                                   }}
                                   className="p-3 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-2xl transition shrink-0"
                                   title="ערוך שם סקר"
@@ -269,7 +287,7 @@ export default function AdminHistoryModal({ isOpen, onClose, surveysData = [], o
 
                           <div className="flex items-center gap-4 shrink-0">
                             <div className="text-base font-heading font-bold text-muted-foreground bg-secondary px-4 py-2 rounded-2xl">
-                              {survey.duration}
+                              {survey.total} הצבעות
                             </div>
                             <div className="p-3 text-muted-foreground">
                               {isExpanded ? <ChevronUp className="w-7 h-7" /> : <ChevronDown className="w-7 h-7" />}

@@ -1,0 +1,63 @@
+# תמונת מסך יומית של מסך התוצאות, במייל, כשהסקר נסגר (16:30 שעון ישראל).
+# רץ בנפרד לגמרי מהאתר: לא משנה שום דבר בסקר, רק קורא את תוצאות היום ושולח מייל.
+#
+# ה-cron של GitHub הוא ב-UTC, לכן יש שתי שעות (קיץ וחורף). הסקריפט בודק את השעה בישראל
+# ושולח רק בחלון של 45 דקות אחרי הסגירה, כך שרק אחת משתי ההפעלות תשלח בפועל.
+name: Daily results screenshot
+
+on:
+  schedule:
+    - cron: "31 13 * * *"   # 16:31 בשעון קיץ (UTC+3)
+    - cron: "31 14 * * *"   # 16:31 בשעון חורף (UTC+2)
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "שליחה מיידית לבדיקה (מתעלם מהשעה, ושולח גם אם אין הצבעות)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      REPORT_TO_EMAIL: ${{ secrets.REPORT_TO_EMAIL }}
+      FORCE: ${{ github.event.inputs.force == 'true' && '1' || '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Check whether it is time to send
+        id: gate
+        run: node scripts/send-snapshot.mjs --gate
+
+      - name: Build the app (only to render the results screen)
+        if: steps.gate.outputs.run == 'true'
+        env:
+          # ערכים מדומים: דף התמונה לא מתחבר למסד נתונים, אבל האפליקציה דורשת שהמשתנים יהיו קיימים
+          VITE_SUPABASE_URL: https://placeholder.supabase.co
+          VITE_SUPABASE_ANON_KEY: placeholder
+        run: npm run build
+
+      - name: Install the screenshot browser
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+
+      - name: Take the screenshot and send the email
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          npx vite preview --host 127.0.0.1 --port 4173 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:4173/ >/dev/null && break; sleep 1; done
+          node scripts/send-snapshot.mjs

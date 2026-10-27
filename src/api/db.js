@@ -59,3 +59,19 @@ export function subscribeToChanges({ onRound, onVote }) {
     supabase.removeChannel(channel);
   };
 }
+
+// מסך ההיסטוריה של המנהלת (דורש קוד מנהלת, נבדק בשרת)
+export async function fetchHistory(code) {
+  const { data, error } = await supabase.rpc("history_surveys", { p_code: code });
+  if (error) throw error;
+  return data || [];
+}
+
+export async function saveSurveyTitle(code, isoDate, title) {
+  const { error } = await supabase.rpc("set_survey_title", {
+    p_code: code,
+    p_date: isoDate,
+    p_title: title,
+  });
+  if (error) throw error;
+}

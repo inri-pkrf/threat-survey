@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { KeyRound, Maximize2 } from "lucide-react";
-import { fetchRound, fetchCounts, fetchVotingWindow, castVote, resetRound, verifyAdminCode, subscribeToChanges } from "@/api/db";
+import { fetchRound, fetchCounts, fetchVotingWindow, castVote, resetRound, verifyAdminCode, subscribeToChanges, fetchHistory, saveSurveyTitle } from "@/api/db";
 import KioskScaler from "@/components/totem/KioskScaler";
 import TotemHeader from "@/components/totem/TotemHeader";
 import ThreatGrid from "@/components/totem/ThreatGrid";
@@ -11,6 +11,7 @@ import AdminHistoryModal from "@/components/totem/AdminHistoryModal";
 
 import { THREATS } from "@/lib/threats";
 import { DEFAULT_WINDOW, isWithinWindow, formatTime } from "@/lib/votingWindow";
+import { buildSurveys, israelTodayIso } from "@/lib/history";
 
 // ערבוב אקראי של סדר המלבנים (מובטח שהסדר החדש שונה מהקודם)
 function shuffleDifferent(order) {
@@ -39,45 +40,49 @@ export default function Totem() {
 
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
 
-  const [surveysList, setSurveysList] = useState([
-    {
-      id: 1,
-      title: 'סקר איומים מרכזיים',
-      date: '16/10/2026',
-      duration: '4 שעות',
-      status: 'active',
-      results: [
-        { name: 'איום א\'', votes: 42, percentage: 52 },
-        { name: 'איום ב\'', votes: 25, percentage: 31 },
-        { name: 'איום א\'', votes: 42, percentage: 52 },
-        { name: 'איום ב\'', votes: 25, percentage: 31 },
-        { name: 'איום א\'', votes: 42, percentage: 52 },
-        { name: 'איום ב\'', votes: 25, percentage: 31 },
-        { name: 'איום א\'', votes: 42, percentage: 52 },
-        { name: 'איום ב\'', votes: 25, percentage: 31 },
-        { name: 'איום א\'', votes: 42, percentage: 52 },
-        { name: 'איום ב\'', votes: 25, percentage: 31 },
-        { name: 'איום א\'', votes: 42, percentage: 52 },
-        { name: 'איום ג\'', votes: 14, percentage: 17 }
-      ]
-    },
-    {
-      id: 2,
-      title: 'סקר מוכנות שבוע שעבר',
-      date: '09/10/2026',
-      duration: '6 שעות',
-      status: 'closed',
-      results: [
-        { name: 'תתרחיש 1', votes: 60, percentage: 60 },
-        { name: 'תרחיש 2', votes: 40, percentage: 40 }
-      ]
-    }
-  ]);
+  // מסך ההיסטוריה: נתונים אמיתיים מ-Supabase (נטענים רק אחרי הזנת קוד מנהלת תקין)
+  const [historyRows, setHistoryRows] = useState([]);
+  const [historyUnlocked, setHistoryUnlocked] = useState(false);
+  const historyCodeRef = useRef(null);
 
-  const handleUpdateTitle = (surveyId, newTitle) => {
-    setSurveysList((prev) =>
-      prev.map((s) => (s.id === surveyId ? { ...s, title: newTitle } : s))
-    );
+  const unlockHistory = async (code) => {
+    try {
+      const rows = await fetchHistory(code);
+      historyCodeRef.current = code;
+      setHistoryRows(rows);
+      setHistoryUnlocked(true);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  const closeHistory = () => {
+    setIsAdminModalOpen(false);
+    setHistoryUnlocked(false);
+    setHistoryRows([]);
+    historyCodeRef.current = null;
+  };
+
+  // רענון תקופתי כל עוד מסך ההיסטוריה פתוח (כך שסקר שהסתיים מופיע מיד)
+  useEffect(() => {
+    if (!isAdminModalOpen || !historyUnlocked) return undefined;
+    const refresh = async () => {
+      if (!historyCodeRef.current) return;
+      try {
+        setHistoryRows(await fetchHistory(historyCodeRef.current));
+      } catch (e) {
+        /* נשארים עם הנתונים האחרונים */
+      }
+    };
+    const id = setInterval(refresh, 20000);
+    return () => clearInterval(id);
+  }, [isAdminModalOpen, historyUnlocked]);
+
+  const handleUpdateTitle = async (isoDate, newTitle) => {
+    if (!historyCodeRef.current) throw new Error("no code");
+    await saveSurveyTitle(historyCodeRef.current, isoDate, newTitle);
+    setHistoryRows(await fetchHistory(historyCodeRef.current));
   };
 
   // טעינה, הרשמה לזמן אמת ורענון תקופתי — סנכרון מלא בין שלושת המסכים
@@ -127,6 +132,10 @@ export default function Totem() {
   const isResults = round ? now >= new Date(round.reveal_at).getTime() : false;
   const isOpen = isWithinWindow(votingWindow, now);
   const totalVotes = Object.values(counts).reduce((a, b) => a + (b || 0), 0);
+  const surveysList = buildSurveys(historyRows, {
+    todayIso: israelTodayIso(now),
+    isStillOpenToday: isOpen,
+  });
 
   const handleVote = (threatId, cardEl) => {
     if (isResults || !round || !isOpen) return;
@@ -238,9 +247,10 @@ export default function Totem() {
         {/* רכיב חלון ההיסטוריה והאדמין */}
         <AdminHistoryModal
           isOpen={isAdminModalOpen}
-          onClose={() => setIsAdminModalOpen(false)}
-          onVerify={verifyAdminCode}
+          onClose={closeHistory}
+          onUnlock={unlockHistory}
           surveysData={surveysList}
+          todayIso={israelTodayIso(now)}
           onUpdateTitle={handleUpdateTitle}
         />
       </div>
