@@ -8,9 +8,12 @@
 //   אופציונלי: REPORT_FROM_EMAIL, SNAPSHOT_URL (ברירת מחדל http://127.0.0.1:4173), FORCE=1, SNAPSHOT_DATE=yyyy-mm-dd
 import { appendFileSync, writeFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
+import { israelParts, lastScheduledInstant } from "./snapshot-time.mjs";
 
 const TZ = "Asia/Jerusalem";
-const SEND_WINDOW_MIN = 45; // מותר לשלוח עד 45 דקות אחרי הסגירה (תזמון ב-GitHub עלול לאחר)
+const SEND_WINDOW_MIN = 45; // הרצה ידנית/חיצונית: מותר לשלוח עד 45 דקות אחרי הסגירה
+const SCHEDULE_WINDOW_MIN = 30; // הרצה מתוזמנת: ההרצה צריכה להיות מתוזמנת עד 30 דקות אחרי הסגירה
+const MAX_DELAY_HOURS = 20; // לא שולחים אם GitHub איחר ביותר מכך
 const gateOnly = process.argv.includes("--gate");
 const force = process.env.FORCE === "1" || process.env.FORCE === "true";
 
@@ -19,13 +22,7 @@ const toMinutes = (t) => {
   return Number(h) * 60 + Number(m || 0);
 };
 
-function israelNow() {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false,
-  }).formatToParts(new Date());
-  const get = (t) => parts.find((p) => p.type === t).value;
-  return { date: `${get("year")}-${get("month")}-${get("day")}`, minutes: (Number(get("hour")) % 24) * 60 + Number(get("minute")) };
-}
+const israelNow = () => israelParts(new Date());
 
 const setOutput = (run) => {
   if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `run=${run}\n`);
@@ -46,14 +43,31 @@ if (missing.length) {
 
 const supabase = createClient(required.SUPABASE_URL, required.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
 const nowIl = israelNow();
-const date = process.env.SNAPSHOT_DATE || nowIl.date;
+let date = process.env.SNAPSHOT_DATE || nowIl.date;
 
 // ---- שער: האם לשלוח עכשיו? ----
 const { data: win } = await supabase.from("voting_window").select("close_time").limit(1).maybeSingle();
 const close = win ? toMinutes(win.close_time) : 16 * 60 + 30;
-const inWindow = nowIl.minutes >= close && nowIl.minutes <= close + SEND_WINDOW_MIN;
-if (!force && !inWindow) {
-  console.log(`מחוץ לחלון השליחה (שעה בישראל: ${Math.floor(nowIl.minutes / 60)}:${String(nowIl.minutes % 60).padStart(2, "0")}). מדלגים.`);
+const fmt = (mins) => `${Math.floor(mins / 60)}:${String(mins % 60).padStart(2, "0")}`;
+
+// הרצה מתוזמנת של GitHub מתעכבת לעיתים בשעות. לכן מחליטים לפי השעה שבה היא *הייתה מתוזמנת*,
+// ולא לפי השעה שבה היא התחילה בפועל. (בשעון קיץ וחורף יש שתי שעות cron, ורק אחת מהן מתאימה.)
+const scheduledAt = lastScheduledInstant(process.env.SCHEDULE_CRON);
+let shouldSend;
+if (force) {
+  shouldSend = true;
+} else if (scheduledAt) {
+  const sched = israelParts(scheduledAt);
+  const delayH = (Date.now() - scheduledAt.getTime()) / 3600000;
+  shouldSend = sched.minutes >= close && sched.minutes <= close + SCHEDULE_WINDOW_MIN && delayH <= MAX_DELAY_HOURS;
+  if (shouldSend) date = process.env.SNAPSHOT_DATE || sched.date; // התאריך של היום המתוזמן, גם אם ההרצה איחרה
+  console.log(`הרצה מתוזמנת ל-${sched.date} ${fmt(sched.minutes)} (שעון ישראל), התחילה באיחור של ${delayH.toFixed(1)} שעות. שולחים: ${shouldSend}`);
+} else {
+  shouldSend = nowIl.minutes >= close && nowIl.minutes <= close + SEND_WINDOW_MIN;
+  console.log(`הרצה ידנית/חיצונית, שעה בישראל ${fmt(nowIl.minutes)}. שולחים: ${shouldSend}`);
+}
+if (!shouldSend) {
+  console.log("מחוץ לחלון השליחה. מדלגים.");
   if (gateOnly) setOutput("false");
   process.exit(0);
 }

@@ -1,8 +1,9 @@
 # תמונת מסך יומית של מסך התוצאות, במייל, כשהסקר נסגר (16:30 שעון ישראל).
 # רץ בנפרד לגמרי מהאתר: לא משנה שום דבר בסקר, רק קורא את תוצאות היום ושולח מייל.
 #
-# ה-cron של GitHub הוא ב-UTC, לכן יש שתי שעות (קיץ וחורף). הסקריפט בודק את השעה בישראל
-# ושולח רק בחלון של 45 דקות אחרי הסגירה, כך שרק אחת משתי ההפעלות תשלח בפועל.
+# ה-cron של GitHub הוא ב-UTC, לכן יש שתי שעות (קיץ וחורף). GitHub מאחר לפעמים בשעות,
+# ולכן הסקריפט מחליט לפי השעה שבה ההרצה הייתה מתוזמנת (ולא לפי מתי שהתחילה בפועל),
+# כך שרק אחת משתי ההפעלות שולחת, גם אם הגיעה באיחור.
 name: Daily results screenshot
 
 on:
@@ -29,6 +30,7 @@ jobs:
       RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
       REPORT_TO_EMAIL: ${{ secrets.REPORT_TO_EMAIL }}
       FORCE: ${{ github.event.inputs.force == 'true' && '1' || '' }}
+      SCHEDULE_CRON: ${{ github.event.schedule }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
